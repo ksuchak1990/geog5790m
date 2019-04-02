@@ -7,7 +7,7 @@ disposal.
 
 In order to demonstrate this, a pre-built agent-based model is used (see [this
 paper](https://www.sciencedirect.com/science/article/pii/S0304380006002894
-"Aphid population response...") in conjunction with Python's `multiprocessing`
+"Aphid population response...")) in conjunction with Python's `multiprocessing`
 module.
 This implements a Message Passing Interface (MPI) whereby we have a parent
 process connected to each of the child processes by 'pipes'.
