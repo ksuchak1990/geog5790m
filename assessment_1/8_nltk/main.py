@@ -5,9 +5,9 @@ data_created: 19/03/14
 last_modified: 19/03/14
 """
 # Imports
+from time import sleep
 import nltk
 import requests
-from time import sleep
 
 # Constants
 GOOGLE_MAPS_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json'
@@ -49,13 +49,13 @@ def request_url(url):
             r.status_code))
     return r.text
 
-def is_nnp(tagged):
+def is_nnp(tagged_word):
     """
     A function to check if a tagged word really is a proper noun.
-    :param tagged: A tagged word, (word, tag)
+    :param tagged_word: A tagged word, (word, tag)
     :returns: boolean, true if npp else false
     """
-    return tagged[0].isalpha() and not tagged[0].isupper()
+    return tagged_word[0].isalpha() and not tagged_word[0].isupper()
 
 def geocode_google(noun):
     """
@@ -104,7 +104,7 @@ word_frequency = nltk.FreqDist(text)
 print(word_frequency.most_common(20))
 
 # Find 20 most common word lengths
-word_length =  nltk.FreqDist(len(w) for w in text)
+word_length = nltk.FreqDist(len(w) for w in text)
 print(word_length.most_common(20))
 
 # Find all words over 10 letters long
