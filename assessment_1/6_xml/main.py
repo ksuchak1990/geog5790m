@@ -1,7 +1,7 @@
 """
 description:
 A python script to practice interacting with xml for advanced programming.
-@author: ksuchak
+@author: ksuchak1990
 """
 # Imports
 from lxml import etree
@@ -12,12 +12,14 @@ def get_xml(map_xml):
     A function to get hold of xml from an open file.
     """
     xml_file = map_xml.read()
+    # Replace to get rid of head
     return xml_file.replace('<?xml version="1.0" encoding="UTF-8"?>', "")
 
 def validate_map1():
     """
     A function to validate map1.xml.
     """
+    # Use context managers to open files
     with open('map1.dtd') as map_dtd:
         with open('map1.xml') as map_xml:
             xml1 = get_xml(map_xml)
@@ -29,6 +31,7 @@ def validate_map2():
     """
     A function to validate map2.xml.
     """
+    # Use context managers to open files
     with open('map2.xsd') as map_xsd:
         with open('map2.xml') as map_xml:
             xml1 = get_xml(map_xml)
@@ -44,7 +47,6 @@ def list_elements():
         xml1 = get_xml(map_xml)
         root = etree.XML(xml1)
         et = etree.ElementTree(root)
-        
         for element in et.iter():
             print(element)
 
