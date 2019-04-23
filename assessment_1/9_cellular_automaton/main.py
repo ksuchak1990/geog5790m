@@ -19,20 +19,20 @@ fire_start_y = 4
 fuel_amount = 5
 
 # Build environment
-def make_environment(height, width):
+def make_environment(env_height, env_width):
     """
     Function to create a rectangular grid environment.
 
     Params
-        height - height of grid, int
-        width - width of grid, int
+        env_height - height of grid, int
+        env_width - width of grid, int
     Returns
         environment - rectangular environment, list of lists
     """
     environment = list()
-    for i in range(height):
+    for i in range(env_height):
         row_list = list()
-        for j in range(width):
+        for j in range(env_width):
             row_list.append(fuel_amount)
         environment.append(row_list)
     return environment
