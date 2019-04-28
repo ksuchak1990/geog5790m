@@ -16,5 +16,7 @@ GEOG5990M module through the following syllabus:
 10. Multiprocessing
 
 The details of each of the practicals (along with further info) can be found on
-the course homepage [course
+the [course
 homepage](https://www.geog.leeds.ac.uk/courses/computing/study/advanced-python/ "GEOG5790M")
+For biographical information, please see [my personal
+website](https://ksuchak1990.github.io). 
