@@ -33,3 +33,23 @@ class Car_Model():
         # Collecting states
         self.times = [self.time]
         self.states = [self.state.copy()]
+
+    def step(self):
+        """
+        Step model forward one step in time.
+        """
+        # Calculate updates
+        x_noise = np.random.normal(self.noise_mean, self.noise_std)
+        y_noise = np.random.normal(self.noise_mean, self.noise_std)
+        x_update = self.x_speed * self.time_step + x_noise
+        y_update = self.y_speed * self.time_step + y_noise
+
+        # Update state and time
+        self.time += self.time_step
+        self.state[0] += x_update
+        self.state[1] += y_update
+
+        # Add to list of states
+        self.times.append(self.time)
+        self.states.append(self.state.copy())
+
