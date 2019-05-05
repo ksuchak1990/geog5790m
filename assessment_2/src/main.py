@@ -99,3 +99,33 @@ for i in range(N_STEPS):
 model_x = [state[0] for state in e.results]
 model_y = [state[1] for state in e.results]
 
+# Plotting functions
+def plot_positions(x, y):
+    """
+    Plotting function to compare enkf model state with truth and obs.
+    """
+    plt.figure()
+    plt.plot(true_x, true_y, '--b', label='truth')
+    plt.scatter(obs_x, obs_y, color='black', alpha=0.5, label='obs')
+    plt.scatter(x, y, color='red', alpha=0.5, label='model')
+    plt.title('$\sigma_o={0}$, $\sigma_m={1}$'.format(OBS_NOISE_STD,
+                                                      MODEL_NOISE_STD))
+    plt.legend()
+    plt.show()
+
+def plot_errors(x, y):
+    """
+    Plotting function to visualise error of filter.
+    """
+    x_model_error = [np.abs(x[i] - true_x[i]) for i in range(len(true_x))]
+    y_model_error = [np.abs(y[i] - true_y[i]) for i in range(len(true_y))]
+
+    plt.figure()
+    data = [x_model_error, y_model_error]
+    plt.boxplot(data)
+    plt.xlabel('Axis')
+    plt.ylabel('Absolute error')
+    plt.show()
+
+plot_positions(model_x, model_y)
+plot_errors(model_x, model_y)
