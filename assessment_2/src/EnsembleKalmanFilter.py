@@ -75,7 +75,7 @@ class EnsembleKalmanFilter:
 
         self.update_state_ensemble()
         self.update_state_mean()
-        self.results = self.state_mean]
+        self.results = [self.state_mean]
 
     def step(self, data=None):
         """
@@ -159,7 +159,7 @@ class EnsembleKalmanFilter:
         """
         x = np.zeros(shape=(len(data), self.ensemble_size))
         for i in range(self.ensemble_size):
-            x[:, i] = data + np.random.normal(0, self.R_vector, len(data)))
+            x[:, i] = data + np.random.normal(0, self.R_vector, len(data))
         self.data_ensemble = x
 
     def update_models(self):
@@ -169,22 +169,22 @@ class EnsembleKalmanFilter:
         for i in range(self.ensemble_size):
             self.models[i].state = self.state_ensemble[:, i]
 
-        def make_ensemble_covariance(self):
-            """
-            Create ensemble covariance matrix.
-            """
-            a = self.state_ensemble @ np.ones(shape=(self.ensemble_size, 1))
-            b = np.ones(shape=(1, self.ensemble_size))
-            A = self.state_ensemble - 1/self.ensemble_size * a @ b
-            return 1/(self.ensemble_size - 1) * A @ A.T
+    def make_ensemble_covariance(self):
+        """
+        Create ensemble covariance matrix.
+        """
+        a = self.state_ensemble @ np.ones(shape=(self.ensemble_size, 1))
+        b = np.ones(shape=(1, self.ensemble_size))
+        A = self.state_ensemble - 1/self.ensemble_size * a @ b
+        return 1/(self.ensemble_size - 1) * A @ A.T
 
-        def make_gain_matrix(self):
-            """
-            Create kalman gain matrix.
-            """
-            C = np.cov(self.state_ensemble)
-            state_covariance = self.H @ C @ self.H_transpose
-            diff = state_covariance - self.data_covariance
-            return C @ self.H_transpose @ np.linalg.inv(diff)
+    def make_gain_matrix(self):
+        """
+        Create kalman gain matrix.
+        """
+        C = np.cov(self.state_ensemble)
+        state_covariance = self.H @ C @ self.H_transpose
+        diff = state_covariance - self.data_covariance
+        return C @ self.H_transpose @ np.linalg.inv(diff)
 
 

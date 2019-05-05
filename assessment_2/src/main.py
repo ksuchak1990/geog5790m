@@ -8,6 +8,10 @@ A python script to test out the Ensemble Kalman Filter with a basic model.
 import matplotlib.pyplot as plt
 import numpy as np
 from Model import Car_Model
+from EnsembleKalmanFilter import EnsembleKalmanFilter as EnKF
+
+# Set seed for reproducibility
+np.random.seed(666)
 
 # Constants
 CAR_X_SPEED = 5
@@ -17,6 +21,7 @@ MODEL_NOISE_MEAN = 0
 MODEL_NOISE_STD = 10
 OBS_NOISE_MEAN = 0
 OBS_NOISE_STD = 10
+ASSIMILATION_PERIOD = 5
 
 def make_data(params, n, vis=True):
     """
@@ -66,3 +71,31 @@ plt.scatter(obs_x, obs_y)
 plt.xlabel('Observed car x-position')
 plt.ylabel('Observed car y-position')
 plt.show()
+
+# Set up EnKF
+model_params = {'x_speed': CAR_X_SPEED,
+                'y_speed': CAR_Y_SPEED,
+                'noise_mean': MODEL_NOISE_MEAN,
+                'noise_std': MODEL_NOISE_STD}
+
+filter_params = {'max_iterations': 50,
+                 'ensemble_size': 100,
+                 'state_vector_length': 2,
+                 'data_vector_length': 2,
+                 'H': np.identity(2),
+                 'R_vector': np.array([OBS_NOISE_STD, OBS_NOISE_STD])}
+
+# Initialise filter with car model
+e = EnKF(Car_Model, filter_params, model_params)
+
+# Step filter
+for i in range(N_STEPS):
+    if i % ASSIMILATION_PERIOD == 0:
+        observation = np.array([obs_x[i], obs_y[i]])
+        e.step(observation)
+    else:
+        e.step()
+
+model_x = [state[0] for state in e.results]
+model_y = [state[1] for state in e.results]
+
