@@ -18,10 +18,10 @@ CAR_X_SPEED = 5
 CAR_Y_SPEED = 5
 N_STEPS = 100
 MODEL_NOISE_MEAN = 0
-MODEL_NOISE_STD = 10
+MODEL_NOISE_STD = 20
 OBS_NOISE_MEAN = 0
-OBS_NOISE_STD = 10
-ASSIMILATION_PERIOD = 5
+OBS_NOISE_STD = 20
+ASSIMILATION_PERIOD = 10
 
 def make_data(params, n, vis=True):
     """
@@ -78,7 +78,7 @@ model_params = {'x_speed': CAR_X_SPEED,
                 'noise_mean': MODEL_NOISE_MEAN,
                 'noise_std': MODEL_NOISE_STD}
 
-filter_params = {'max_iterations': 50,
+filter_params = {'max_iterations': N_STEPS,
                  'ensemble_size': 100,
                  'state_vector_length': 2,
                  'data_vector_length': 2,
@@ -129,3 +129,46 @@ def plot_errors(x, y):
 
 plot_positions(model_x, model_y)
 plot_errors(model_x, model_y)
+
+def test_enkf(n, t):
+    """
+    Function to test the ensemble kalman filter for a given ensemble size.
+    """
+    print('Running for ensemble_size={0}, period={1}'.format(n, t))
+    model_params = {'x_speed': CAR_X_SPEED,
+                    'y_speed': CAR_Y_SPEED,
+                    'noise_mean': MODEL_NOISE_MEAN,
+                    'noise_std': MODEL_NOISE_STD}
+    filter_params = {'max_iterations': N_STEPS,
+                     'ensemble_size': n,
+                     'state_vector_length': 2,
+                     'data_vector_length': 2,
+                     'H': np.identity(2),
+                     'R_vector': np.array([OBS_NOISE_STD, OBS_NOISE_STD])}
+    
+    e = EnKF(Car_Model, filter_params, model_params)
+
+    # Step filter
+    for i in range(N_STEPS):
+        if i % t == 0:
+            observation = np.array([obs_x[i], obs_y[i]])
+            e.step(observation)
+        else:
+            e.step()
+
+    # Get model outputs
+    model_x = [state[0] for state in e.results]
+    model_y = [state[1] for state in e.results]
+
+    # Plotting
+    plot_positions(model_x, model_y)
+    plot_errors(model_x, model_y)
+
+def runner():
+    sizes = [10, 20, 50, 100]
+    periods = [10, 20, 50]
+    for n in sizes:
+        for t in periods:
+            test_ensemble_size(n, t)
+
+runner()
