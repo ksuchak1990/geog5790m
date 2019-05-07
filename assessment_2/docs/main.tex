@@ -1,0 +1,218 @@
+\documentclass[a4paper, 12pt, twoside]{article}
+
+% Packages
+\usepackage{amsmath}
+\usepackage{natbib}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{GEOG5790M: Ensemble Kalman Filter \\
+        \large \url{https://github.com/ksuchak1990/geog5790m}}
+
+\author{Keiran Suchak}
+\date{05/05/19}
+
+\maketitle
+\tableofcontents
+
+\newpage
+\section{Aim}\label{sec:aim}
+
+This document has been produced as part of the second assessment for the
+GEOG5790M module.
+The aim of this module is to further develop Python programming skills.
+With this aim in mind, the module focuses on the following processes:
+\begin{itemize}
+    \item Data processing,
+    \item Analysis and visualisation, and
+    \item Modelling.
+\end{itemize}
+
+As with the second assessment for the preceding introductory module, the scope
+for this assessment is left relatively open-ended with the hope that something
+of use can be produced.
+The code that has been produced therefore aims to implement a data assimilation
+technique known as the Ensemble Kalman Filter (EnKF) which can aid the
+simulation process when new data is provided regarding the system that is being
+modelled.
+
+\subsection{Problem Specification}\label{sub:aim:problem}
+
+Computational investigations often focus on modelling phenomena that we observe
+in the real-world.
+Such models represent our understanding of the systems that we study, and
+consequently are seldom perfect.
+As a consequence, simulation runs often diverge from what we observe in the
+real-world system.
+Two of the most common methods by which modellers attempt to combat such
+divergence are:
+\begin{itemize}
+    \item State calibration: Estimating the initial state of the model.
+    \item Parameter estimation: Attempting to calculate the best values for the
+        model parameters.
+\end{itemize}
+
+These methods, however, are static --- they are typically performed once before
+the model is set running.
+As we move forward into the age of Big Data, greater volumes of data are
+becoming available at a higher velocity.
+Consequently, we are able to obtain observations of the systems that we are
+modelling as the model runs.
+
+Although these observations may provide us with an up-to-date idea of the state
+of the system, they are not without their own flaws.
+Observational data are typically sparse in time or space (or both).
+Furthermore, they have observation uncertainty associated with them.
+As a result, we need to take care in combining the information contained within
+our model and the information gained from the observations.
+
+One of the methods for combining the two pieces of information is the process of
+data assimilation.
+Data assimilation is typically used by meteorologists in the field of numerical
+weather prediction \citep{kalnay2003atmospheric}.
+There exist a wide range of data assimilation schemes --- this investigation
+aims to implement the Ensemble Kalman Filter method, testing it with a very
+basic kinematic model.
+
+\section{Implementation}\label{sec:implementation}
+
+\subsection{Model}\label{sub:model}
+
+The model developed for this assessment is a trivial one, named
+\texttt{Car\_Model}.
+This model aims to simulate a car travelling at a constant speed in the $x-y$
+plane.
+Given its speed in the $x$-direction and $y$-direction ($u$ and $v$
+respectively), its position is updated each time-step by the rule:
+\begin{align}
+    x_{t+1} &= x_{t} + u \times \Delta t \\
+    y_{t+1} &= y_{t} + v \times \Delta t
+\end{align}
+where $\Delta t$ is the time-step.
+
+The model includes the facility to introduce normally distributed random noise
+to the update at each time-step, aiming to emulate an `incorrect' model.
+
+\subsection{Ensemble Kalman Filter}\label{sub:enkf}
+
+The Ensemble Kalman Filter is a data assimilation method.
+It is based on the original Kalman Filter \citep{kalman1960new}.
+One of the issues faced by the original Kalman Filter, however, is that as the
+systems on which we focus become larger and more complex, it becomes much more
+computationally expensive to maintain the state covariance matrix; the Ensemble
+Kalman Filter was therefore developed, in which we represent the system state
+using a random sample and the covariance matrix using a sample covariance from
+the ensemble \citep{evensen2003ensemble}.
+
+We represent the system state, $\mathbf{X}$, as an ensemble of realisations:
+\begin{equation}
+    \mathbf{X} = \left( \mathbf{x}_1, \ldots, \mathbf{x}_N \right)
+\end{equation}
+
+We represent the data, $\mathbf{D}$, as an ensemble:
+\begin{equation}
+    \mathbf{D} = \left( \mathbf{d}_1, \ldots, \mathbf{d}_N \right)
+\end{equation}
+Each column, $\mathbf{d}_i$ ($\forall i \in (1, N)$), is constructed from the
+original input data, $\mathbf{d}$, by adding a vector of normally distributed
+random noise:
+\begin{equation}
+    \mathbf{d}_i = \mathbf{d} + \varepsilon_i
+\end{equation}
+\begin{equation}
+    \varepsilon_i = \mathcal{N} (0, R)
+\end{equation}
+where $R$ is the data covariance.
+
+The state is then updated as follows:
+\begin{equation}
+    \hat{X} = X + K \left( D - H X \right)
+\end{equation}
+where $H$ is the observation operator, and $K$ is the Kalman gain matrix given
+by \citep{mandel2009brief}:
+\begin{equation}
+    K = Q H^T \left( H Q H^T + R \right)^{-1}
+\end{equation}
+where $Q$ is the sample covariance (calculated from the ensemble) and $H^T$ is
+the transpose of the observation operator.
+
+This has been encoded as a Python class that wraps around a model, stepping it
+forward in time and updating its state with observations as a when such
+observations are available.
+The constructor accepts three arguemnts:
+\begin{enumerate}
+    \item \texttt{model}: a model to be run.
+    \item \texttt{filter\_params}: parameters for the filter, including the
+        number of members of the ensemble and the frequency with which to
+        assimilate observations.
+    \item \texttt{model\_params}: parameters to be passed to the model when it
+        is first constructed.
+\end{enumerate}
+
+Furthermore, the constructor undertakes a number of checks to ensure that the
+model has the correct methods and attributes with which to interface with the
+filter, and that the correct parameters have been been provided.
+
+After having constructed an instance of the filter, we can step the model
+forward in time using the \texttt{step()} method.
+This method wraps around the processes of prediction and assimilation; the model
+predicts forward each step and assimilates an observation when it is provided.
+
+\section{Usage}\label{sec:usage}
+
+The above model and data assimilation scheme have been implemented in separate
+Python scripts.
+The implementations are then tested in the \texttt{main.py} script.
+This script aims to carry out the following tasks:
+\begin{enumerate}
+    \item Use the model to create some synthetic truth data.
+    \item Use the model to create some synthetic observation data by adding
+        normally distributed noise.
+    \item Create an instance of the EnKF based on the model, running it forward
+        with observations being periodically assimilated.
+    \item Plot the result, comparing the EnKF model with the truth data and the
+        observations.
+\end{enumerate}
+
+The script then goes on to apply the above process with a variety of ensemble
+sizes and assimilation periods.
+
+\section{Future Improvements}\label{sec:improvements}
+
+The current implementation could be further improved as follows:
+\begin{itemize}
+    \item Multi-threading: With the filter maintaining an ensemble of model
+        states, we could implement multi-threading in order to step the ensemble
+        members forward in parallel between assimilation updates.
+    \item More complicated models: The model to which the filter has been
+        applied here is very simple; the filter could be further tested using
+        more complicated models to test its efficacy.
+    \item Profiling: In maintaining an ensemble of models, the filter will
+        ultimately require more memory; future investigations could seek to
+        understand the space and time complexity scaling of the filter.
+    \item Abstract model class: In order to ensure that all models are compliant
+        with the form expected by the filter, a simple abstract model class
+        could be developed from which all subsequent models would inherit.
+    \item Access control: The only methods that a user will require access to
+        will be the filter constructor and \texttt{step()}; consequently, we may
+        wish to make other methods private such that the user does not
+        mistakenly use them.
+\end{itemize}
+
+\bibliographystyle{apa}
+\bibliography{references.bib}
+
+\newpage
+\appendix
+\section{Required Packages}\label{sec:requirements}
+
+In order to run the code to which this document is attached, the following
+Python packages are required:
+\begin{itemize}
+    \item \texttt{matplotlib}
+    \item \texttt{numpy}
+    \item \texttt{warnings}
+\end{itemize}
+
+\end{document}
