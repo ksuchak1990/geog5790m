@@ -96,6 +96,69 @@ to the update at each time-step, aiming to emulate an `incorrect' model.
 
 \subsection{Ensemble Kalman Filter}\label{sub:enkf}
 
+The Ensemble Kalman Filter is a data assimilation method.
+It is based on the original Kalman Filter \citep{kalman1960new}.
+One of the issues faced by the original Kalman Filter, however, is that as the
+systems on which we focus become larger and more complex, it becomes much more
+computationally expensive to maintain the state covariance matrix; the Ensemble
+Kalman Filter was therefore developed, in which we represent the system state
+using a random sample and the covariance matrix using a sample covariance from
+the ensemble \citep{evensen2003ensemble}.
+
+We represent the system state, $\mathbf{X}$, as an ensemble of realisations:
+\begin{equation}
+    \mathbf{X} = \left( \mathbf{x}_1, \ldots, \mathbf{x}_N \right)
+\end{equation}
+
+We represent the data, $\mathbf{D}$, as an ensemble:
+\begin{equation}
+    \mathbf{D} = \left( \mathbf{d}_1, \ldots, \mathbf{d}_N \right)
+\end{equation}
+Each column, $\mathbf{d}_i$ ($\forall i \in (1, N)$), is constructed from the
+original input data, $\mathbf{d}$, by adding a vector of normally distributed
+random noise:
+\begin{equation}
+    \mathbf{d}_i = \mathbf{d} + \varepsilon_i
+\end{equation}
+\begin{equation}
+    \varepsilon_i = \mathcal{N} (0, R)
+\end{equation}
+where $R$ is the data covariance.
+
+The state is then updated as follows:
+\begin{equation}
+    \hat{X} = X + K \left( D - H X \right)
+\end{equation}
+where $H$ is the observation operator, and $K$ is the Kalman gain matrix given
+by \citep{mandel2009brief}:
+\begin{equation}
+    K = Q H^T \left( H Q H^T + R \right)^{-1}
+\end{equation}
+where $Q$ is the sample covariance (calculated from the ensemble) and $H^T$ is
+the transpose of the observation operator.
+
+This has been encoded as a Python class that wraps around a model, stepping it
+forward in time and updating its state with observations as a when such
+observations are available.
+The constructor accepts three arguemnts:
+\begin{enumerate}
+    \item \texttt{model}: a model to be run.
+    \item \texttt{filter\_params}: parameters for the filter, including the
+        number of members of the ensemble and the frequency with which to
+        assimilate observations.
+    \item \texttt{model\_params}: parameters to be passed to the model when it
+        is first constructed.
+\end{enumerate}
+
+Furthermore, the constructor undertakes a number of checks to ensure that the
+model has the correct methods and attributes with which to interface with the
+filter, and that the correct parameters have been been provided.
+
+After having constructed an instance of the filter, we can step the model
+forward in time using the \texttt{step()} method.
+This method wraps around the processes of prediction and assimilation; the model
+predicts forward each step and assimilates an observation when it is provided.
+
 \section{Usage}\label{sec:usage}
 
 The above model and data assimilation scheme have been implemented in separate
@@ -128,6 +191,13 @@ The current implementation could be further improved as follows:
     \item Profiling: In maintaining an ensemble of models, the filter will
         ultimately require more memory; future investigations could seek to
         understand the space and time complexity scaling of the filter.
+    \item Abstract model class: In order to ensure that all models are compliant
+        with the form expected by the filter, a simple abstract model class
+        could be developed from which all subsequent models would inherit.
+    \item Access control: The only methods that a user will require access to
+        will be the filter constructor and \texttt{step()}; consequently, we may
+        wish to make other methods private such that the user does not
+        mistakenly use them.
 \end{itemize}
 
 \bibliographystyle{apa}
