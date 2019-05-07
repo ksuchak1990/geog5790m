@@ -169,6 +169,6 @@ def runner():
     periods = [10, 20, 50]
     for n in sizes:
         for t in periods:
-            test_ensemble_size(n, t)
+            test_enkf(n, t)
 
 runner()
