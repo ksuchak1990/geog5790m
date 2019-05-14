@@ -90,7 +90,7 @@ class EnsembleKalmanFilter:
         self.predict()
         self.update_state_ensemble()
         self.update_state_mean()
-        
+
         if not data is None:
             self.update(data)
             self.update_models()
@@ -101,7 +101,7 @@ class EnsembleKalmanFilter:
     def predict(self):
         """
         Step the models forward by one time-step to produce predictions
-        
+
         Params:
             None
 
@@ -184,7 +184,5 @@ class EnsembleKalmanFilter:
         """
         C = np.cov(self.state_ensemble)
         state_covariance = self.H @ C @ self.H_transpose
-        diff = state_covariance - self.data_covariance
-        return C @ self.H_transpose @ np.linalg.inv(diff)
-
-
+        denominator = state_covariance + self.data_covariance
+        return C @ self.H_transpose @ np.linalg.inv(denominator)
